@@ -63,16 +63,12 @@ jobs:
         git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall2 package/luci-app-passwall2
     #    git clone "your_github_link" package/"your_folder_name"      
 
-    - name: Import external feeds - JerryKuKu Argon
-      working-directory: ./openwrt
-      run: |
-        git clone https://github.com/jerrykuku/luci-theme-argon.git package/luci-theme-argon-jerrykuku
-
     - name: Import external feeds - Aliyundrive Webdav
       working-directory: ./openwrt
       run: |
-        git clone https://github.com/messense/aliyundrive-webdav/tree/main/openwrt/aliyundrive-webdav package/aliyundrive-webdav
-        git clone https://github.com/messense/aliyundrive-webdav/tree/main/openwrt/luci-app-aliyundrive-webdav package/luci-app-aliyundrive-webdav
+        # 添加luci-app-go-aliyundrive-webdav(jerrykuku库)
+        git clone https://github.com/jerrykuku/luci-app-go-aliyundrive-webdav.git package/luci-app-go-aliyundrive-webdav
+        git clone https://github.com/jerrykuku/go-aliyundrive-webdav.git package/go-aliyundrive-webdav
 
     - name: Import external feeds - ddns-go
       working-directory: ./openwrt
@@ -88,7 +84,6 @@ jobs:
       working-directory: ./openwrt
       run: |
         git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata
-
 
     # Themes
     - name: Import external feeds - Themes
