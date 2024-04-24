@@ -12,6 +12,14 @@ on:
   repository_dispatch:
   workflow_dispatch:
 
+env:
+  REPO_URL: https://github.com/coolsnowwolf/lede
+  REPO_BRANCH: master
+  CONFIG_FILE: x86_64.config
+  DIY_SCRIPT: customize.sh
+  CACHE_TOOLCHAIN: true
+  TZ: Asia/Shanghai
+  
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -56,6 +64,7 @@ jobs:
         sudo -E apt-get -y install ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential bzip2 ccache cmake cpio curl device-tree-compiler fastjar flex gawk gettext gcc-multilib g++-multilib git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libfuse-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libpython3-dev libreadline-dev libssl-dev libtool lrzsz mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python2.7 python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev qemu-img
         sudo -E apt-get -y autoremove --purge
         sudo -E apt-get clean
+        sudo timedatectl set-timezone "$TZ"
 
     - name: Combine Disks
       uses: easimon/maximize-build-space@master
@@ -68,19 +77,15 @@ jobs:
       uses: actions/checkout@master
       
     - name: Clone source code
-      env: 
-        REPO_URL: https://github.com/coolsnowwolf/lede
-        REPO_BRANCH: master
       run: |
         git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
         cd openwrt
+        echo "OPENWRT_PATH=$PWD" >> $GITHUB_ENV
 
     - name: Generate Variables - Build_x86_64
-      working-directory: ./openwrt
-      env:
-        CONFIG_FILE: 'x86_64.config'
       run: |
-        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
+        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $OPENWRT_PATH/.config
+        cd $OPENWRT_PATH
         make defconfig > /dev/null 2>&1
         SOURCE_REPO="$(echo $REPO_URL | awk -F '/' '{print $(NF)}')"
         echo "SOURCE_REPO=$SOURCE_REPO" >> $GITHUB_ENV
@@ -90,7 +95,7 @@ jobs:
         echo "DEVICE_SUBTARGET=$DEVICE_SUBTARGET" >> $GITHUB_ENV
         
     - name: Cache Toolchain
-      #if: env.CACHE_TOOLCHAIN == 'true'
+      if: env.CACHE_TOOLCHAIN == 'true'
       uses: HiGarfield/cachewrtbuild@main
       with:
         ccache: false
@@ -98,60 +103,60 @@ jobs:
         prefix: ${{ env.OPENWRT_PATH }}
         
     - name: Update & Install feeds
-      working-directory: ./openwrt
       run: |
+        cd $OPENWRT_PATH
         ./scripts/feeds update -a
         ./scripts/feeds install -a
 
     - name: Import external feeds - passwall
-      working-directory: ./openwrt
       run: |
+        cd $OPENWRT_PATH
         git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall-packages package/openwrt-passwall
         git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall package/luci-app-passwall
         git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall2 package/luci-app-passwall2
     #    git clone "your_github_link" package/"your_folder_name"      
 
     - name: Import external feeds - Aliyundrive Webdav
-      working-directory: ./openwrt
       run: |
         # 添加luci-app-go-aliyundrive-webdav(jerrykuku库)
+        cd $OPENWRT_PATH
         git clone --depth=1 https://github.com/jerrykuku/luci-app-go-aliyundrive-webdav.git package/luci-app-go-aliyundrive-webdav
         git clone --depth=1 https://github.com/jerrykuku/go-aliyundrive-webdav.git package/go-aliyundrive-webdav
 
     - name: Import external feeds - ddns-go
-      working-directory: ./openwrt
       run: |
+        cd $OPENWRT_PATH
         git clone --depth=1 https://github.com/sirpdboy/luci-app-ddns-go.git package/luci-app-ddns-go
 
     - name: Import external feeds - adguardhome
-      working-directory: ./openwrt
       run: |
+        cd $OPENWRT_PATH
         git clone --depth=1 https://github.com/rufengsuixing/luci-app-adguardhome package/luci-app-adguardhome
 
     - name: Import external feeds - Netdata
-      working-directory: ./openwrt
       run: |
+        cd $OPENWRT_PATH
         git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata
         
     - name: Import external feeds - Chinadns
-      working-directory: ./openwrt
       run: |
+        cd $OPENWRT_PATH
         git clone --depth=1 https://github.com/pexcn/openwrt-chinadns-ng.git package/chinadns-ng
 
     - name: Import external feeds - Poweroff
-      working-directory: ./openwrt
       run: |
+        cd $OPENWRT_PATH
         git clone --depth=1 https://github.com/esirplayground/luci-app-poweroff package/luci-app-poweroff
 
     - name: Import external feeds - Smartdns
-      working-directory: ./openwrt
       run: |
+        cd $OPENWRT_PATH
         git clone --depth=1 -b lede https://github.com/pymumu/luci-app-smartdns package/luci-app-smartdns
         git clone --depth=1 https://github.com/pymumu/openwrt-smartdns package/smartdns
     # Themes
     - name: Import external feeds - Themes
-      working-directory: ./openwrt
       run: |
+        cd $OPENWRT_PATH
         git clone --depth=1 -b 18.06 https://github.com/kiddin9/luci-theme-edge package/luci-theme-edge
         git clone --depth=1 -b 18.06 https://github.com/jerrykuku/luci-theme-argon package/luci-theme-argon
         git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config package/luci-app-argon-config
@@ -159,12 +164,16 @@ jobs:
         
     - name: Configuration Customization - Build_x86_64
       run: |
-        chmod +x ./customize.sh && ./customize.sh
+        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $OPENWRT_PATH/.config
+        chmod +x $DIY_SCRIPT
+        cd $OPENWRT_PATH
+        $GITHUB_WORKSPACE/$DIY_SCRIPT
 
     - name: Download package
-      working-directory: ./openwrt
+      if: (!cancelled())
       run: |
-        #make defconfig
+        cd $OPENWRT_PATH
+        make defconfig
         make download -j$(nproc)
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
@@ -174,8 +183,9 @@ jobs:
       run: df -hT
       
     - name: Build firmware
-      working-directory: ./openwrt
+      if: (!cancelled())
       run: |
+        cd $OPENWRT_PATH
         echo -e "$(nproc) thread build."
         make -j$(nproc) || make -j1 || make -j1 V=s
 
