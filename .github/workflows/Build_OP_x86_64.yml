@@ -20,6 +20,21 @@ jobs:
     - name: Checkout
       uses: actions/checkout@master
 
+    - name: Check Server Performance
+      run: |
+        echo "警告⚠"
+        echo "分配的服务器性能有限，若选择的插件过多，务必注意CPU性能！"
+        echo -e "已知CPU型号(降序): 7763，8370C，8272CL，8171M，E5-2673\n"
+        echo "--------------------------CPU信息--------------------------"
+        echo "CPU物理数量: $(cat /proc/cpuinfo | grep "physical id" | sort | uniq | wc -l)"
+        echo "CPU核心数量: $(nproc)"
+        echo -e "CPU型号信息:$(cat /proc/cpuinfo | grep -m1 name | awk -F: '{print $2}')\n"
+        echo "--------------------------内存信息--------------------------"
+        echo "已安装内存详细信息:"
+        echo -e "$(sudo lshw -short -C memory | grep GiB)\n"
+        echo "--------------------------硬盘信息--------------------------"
+        echo "硬盘数量: $(ls /dev/sd* | grep -v [1-9] | wc -l)" && df -hT
+
     - name: Free disk space
       uses: endersonmenezes/free-disk-space@main
       with:
@@ -38,7 +53,7 @@ jobs:
         DEBIAN_FRONTEND: noninteractive
       run: |
         set +e
-        df -h
+        
         docker rmi `docker images -q`
         sudo -E apt-get -y purge azure-cli* docker* ghc* zulu* hhvm* llvm* firefox* google* dotnet* aspnetcore* powershell* openjdk* adoptopenjdk* mysql* php* mongodb* moby* snap* || true
         sudo -E apt-get update
@@ -72,18 +87,18 @@ jobs:
       working-directory: ./openwrt
       run: |
         # 添加luci-app-go-aliyundrive-webdav(jerrykuku库)
-        git clone https://github.com/jerrykuku/luci-app-go-aliyundrive-webdav.git package/luci-app-go-aliyundrive-webdav
-        git clone https://github.com/jerrykuku/go-aliyundrive-webdav.git package/go-aliyundrive-webdav
+        git clone --depth=1 https://github.com/jerrykuku/luci-app-go-aliyundrive-webdav.git package/luci-app-go-aliyundrive-webdav
+        git clone --depth=1 https://github.com/jerrykuku/go-aliyundrive-webdav.git package/go-aliyundrive-webdav
 
     - name: Import external feeds - ddns-go
       working-directory: ./openwrt
       run: |
-        git clone https://github.com/sirpdboy/luci-app-ddns-go.git package/luci-app-ddns-go
+        git clone --depth=1 https://github.com/sirpdboy/luci-app-ddns-go.git package/luci-app-ddns-go
 
     - name: Import external feeds - adguardhome
       working-directory: ./openwrt
       run: |
-        git clone https://github.com/rufengsuixing/luci-app-adguardhome package/luci-app-adguardhome
+        git clone --depth=1 https://github.com/rufengsuixing/luci-app-adguardhome package/luci-app-adguardhome
 
     - name: Import external feeds - Netdata
       working-directory: ./openwrt
@@ -93,16 +108,13 @@ jobs:
     - name: Import external feeds - chinadns
       working-directory: ./openwrt
       run: |
-        git clone https://github.com/pexcn/openwrt-chinadns-ng.git package/chinadns-ng
+        git clone --depth=1 https://github.com/pexcn/openwrt-chinadns-ng.git package/chinadns-ng
 
     # Themes
     - name: Import external feeds - Themes
       working-directory: ./openwrt
       run: |
-        git clone --depth=1 -b 18.06 https://github.com/kiddin9/luci-theme-edge package/luci-theme-edge
         git clone --depth=1 -b 18.06 https://github.com/jerrykuku/luci-theme-argon package/luci-theme-argon
-        git clone --depth=1 https://github.com/jerrykuku/luci-app-argon-config package/luci-app-argon-config
-        git clone --depth=1 https://github.com/xiaoqingfengATGH/luci-theme-infinityfreedom package/luci-theme-infinityfreedom
         
     - name: Configuration Customization - Build_x86_64
       env:
@@ -110,22 +122,31 @@ jobs:
       run: |
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
         chmod +x ./customize.sh && ./customize.sh
-        cd openwrt && make defconfig
         
     - name: Download package
       working-directory: ./openwrt
       run: |
+        make defconfig
         make download -j$(nproc)
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
-
+        
+    - name: Check Space Usage
+      if: (!cancelled())
+      run: df -hT
+      
     - name: Build firmware
       working-directory: ./openwrt
       run: |
         echo -e "$(nproc) thread build."
-        make -j$(nproc) V=s
+        make -j$(nproc) || make -j1 || make -j1 V=s
 
+    - name: Check Space Usage
+      if: (!cancelled())
+      run: df -hT
+      
     - name : Upload artifact
+      if: steps.compile.outputs.status == 'success'
       uses: actions/upload-artifact@master
       with:
         name: OpenWrt
