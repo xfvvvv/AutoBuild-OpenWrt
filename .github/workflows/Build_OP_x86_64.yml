@@ -191,7 +191,8 @@ jobs:
       if: (!cancelled())
       run: |
         cd $OPENWRT_PATH
-        make download -j16#$(nproc)
+        make download -j16
+#$(nproc)
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
         
