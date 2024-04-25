@@ -74,7 +74,7 @@ jobs:
           sudo -E systemctl daemon-reload
           sudo -E apt -y autoremove --purge
           sudo -E apt clean
-          sudo -E timedatectl set-timezone "Asia/Shanghai"
+          sudo -E timedatectl set-timezone "$TZ"
           #set +e
           #docker rmi `docker images -q`
           #sudo -E apt-get -y purge azure-cli* docker* ghc* zulu* hhvm* llvm* firefox* google* dotnet* aspnetcore* powershell* openjdk* adoptopenjdk* mysql* php* mongodb* moby* snap* || true
@@ -191,10 +191,10 @@ jobs:
       if: (!cancelled())
       run: |
         cd $OPENWRT_PATH
-        make download -j$(nproc)
+        make download -j8
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
-        
+
     - name: Check Space Usage
       if: (!cancelled())
       run: df -hT
