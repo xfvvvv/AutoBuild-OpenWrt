@@ -11,14 +11,25 @@ sed -i 's/192.168.1.1/10.0.0.101/g' package/base-files/files/bin/config_generate
 #2. Clear the login password
 sed -i 's/$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.//g' package/lean/default-settings/files/zzz-default-settings
 
-# 修改luci-app-aliyundrive-webdav
+#3. Replace with JerryKuKu’s Argon
 rm -rf feeds/luci/applications/luci-app-aliyundrive-webdav
 rm -rf feeds/packages/multimedia/aliyundrive-webdav
 
-#3. Replace with JerryKuKu’s Argon
-rm package/lean/luci-theme-argon -rf
-rm package/lean/luci-theme-argon -rf
-rm package/lean/luci-theme-argon -rf
+rm -rf feeds/packages/net/mosdns
+rm -rf feeds/packages/net/msd_lite
+rm -rf feeds/packages/net/smartdns
+rm -rf feeds/packages/net/samba4
+rm -rf feeds/packages/net/vsftpd
+
+rm -rf feeds/luci/themes/luci-theme-argon
+rm -rf feeds/luci/themes/luci-theme-netgear
+rm -rf feeds/luci/applications/luci-app-mosdns
+rm -rf feeds/luci/applications/luci-app-netdata
+rm -rf feeds/luci/applications/luci-app-serverchan
+rm -rf feeds/luci/applications/luci-app-mosdns
+rm -rf feeds/luci/applications/luci-app-samba
+rm -rf feeds/luci/applications/luci-app-samba4
+rm -rf feeds/luci/applications/luci-app-vsftpd
 
 # Git稀疏克隆，只克隆指定目录到本地
 function git_sparse_clone() {
@@ -40,20 +51,20 @@ git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall2 package/luci-
 git clone --depth=1 https://github.com/jerrykuku/luci-app-go-aliyundrive-webdav.git package/luci-app-go-aliyundrive-webdav
 git clone --depth=1 https://github.com/jerrykuku/go-aliyundrive-webdav.git package/go-aliyundrive-webdav
 
-#ddns-go
-git clone --depth=1 https://github.com/sirpdboy/luci-app-ddns-go.git package/luci-app-ddns-go
-
 #adguardhome
-git clone --depth=1 https://github.com/rufengsuixing/luci-app-adguardhome package/luci-app-adguardhome
+#git clone --depth=1 https://github.com/rufengsuixing/luci-app-adguardhome package/luci-app-adguardhome
 
 #Netdata
-git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata
+#git clone --depth=1 https://github.com/Jason6111/luci-app-netdata package/luci-app-netdata
 
 #Chinadns
 git clone --depth=1 https://github.com/pexcn/openwrt-chinadns-ng.git package/chinadns-ng
 
 #Poweroff
 git clone --depth=1 https://github.com/esirplayground/luci-app-poweroff package/luci-app-poweroff
+
+# MosDNS
+git clone --depth=1 https://github.com/sbwml/luci-app-mosdns package/luci-app-mosdns
 
 #Smartdns
 #git clone --depth=1 -b lede https://github.com/pymumu/luci-app-smartdns package/luci-app-smartdns
