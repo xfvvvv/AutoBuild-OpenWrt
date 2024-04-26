@@ -48,8 +48,11 @@ git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall package/luci-a
 git clone --depth=1 https://github.com/xiaorouji/openwrt-passwall2 package/luci-app-passwall2
 
 #Aliyundrive Webdav
-git clone --depth=1 https://github.com/jerrykuku/luci-app-go-aliyundrive-webdav.git package/luci-app-go-aliyundrive-webdav
-git clone --depth=1 https://github.com/jerrykuku/go-aliyundrive-webdav.git package/go-aliyundrive-webdav
+#git clone --depth=1 https://github.com/jerrykuku/luci-app-go-aliyundrive-webdav.git package/luci-app-go-aliyundrive-webdav
+#git clone --depth=1 https://github.com/jerrykuku/go-aliyundrive-webdav.git package/go-aliyundrive-webdav
+
+# Alist
+git clone --depth=1 https://github.com/sbwml/luci-app-alist package/luci-app-alist
 
 #adguardhome
 #git clone --depth=1 https://github.com/rufengsuixing/luci-app-adguardhome package/luci-app-adguardhome
