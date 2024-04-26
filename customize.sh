@@ -20,6 +20,7 @@ rm -rf feeds/packages/net/msd_lite
 rm -rf feeds/packages/net/smartdns
 rm -rf feeds/packages/net/samba4
 rm -rf feeds/packages/net/vsftpd
+rm -rf feeds/
 
 rm -rf feeds/luci/themes/luci-theme-argon
 rm -rf feeds/luci/themes/luci-theme-netgear
