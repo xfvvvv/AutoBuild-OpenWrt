@@ -19,7 +19,7 @@ rm -rf feeds/packages/net/msd_lite
 rm -rf feeds/packages/net/smartdns
 rm -rf feeds/packages/net/samba4
 rm -rf feeds/packages/net/vsftpd
-rm -RF feeds/packages/backuppc
+rm -rf feeds/packages/backuppc
 rm -rf feeds/packages/multimedia/aliyundrive-webdav
 
 rm -rf feeds/luci/themes/luci-theme-argon
